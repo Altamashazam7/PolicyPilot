@@ -9,6 +9,7 @@ export default function Home() {
 
   const [policy, setPolicy] = useState("");
   const [result, setResult] = useState("");
+  const [recommendation, setRecommendation] = useState("");
 
   const parsePolicy = () => {
     const text = policy.toLowerCase();
@@ -16,12 +17,31 @@ export default function Home() {
     const solMatch = text.match(/(\d+)\s*%\s*sol/);
     const usdcMatch = text.match(/(\d+)\s*%\s*usdc/);
 
+    const targetSol = solMatch ? Number(solMatch[1]) : 0;
+    const targetUsdc = usdcMatch ? Number(usdcMatch[1]) : 0;
+
     const parsed = {
-      sol: solMatch ? Number(solMatch[1]) : 0,
-      usdc: usdcMatch ? Number(usdcMatch[1]) : 0,
+      sol: targetSol,
+      usdc: targetUsdc,
     };
 
     setResult(JSON.stringify(parsed, null, 2));
+
+    // Mock portfolio for MVP
+    const currentSol = 80;
+    const currentUsdc = 20;
+
+    let rec = "";
+
+    if (currentSol > targetSol) {
+      rec = `Swap ${currentSol - targetSol}% SOL into USDC`;
+    } else if (currentUsdc > targetUsdc) {
+      rec = `Swap ${currentUsdc - targetUsdc}% USDC into SOL`;
+    } else {
+      rec = "Portfolio already matches policy.";
+    }
+
+    setRecommendation(rec);
   };
 
   return (
@@ -68,7 +88,7 @@ export default function Home() {
               onClick={parsePolicy}
               className="mt-4 rounded-lg bg-purple-600 px-4 py-2"
             >
-              Parse Policy
+              Analyze Policy
             </button>
           </div>
 
@@ -77,9 +97,22 @@ export default function Home() {
               Agent Recommendation
             </h2>
 
+            <div className="mt-4 rounded bg-zinc-900 p-4">
+              <p className="font-semibold text-blue-400">
+                Current Portfolio
+              </p>
+
+              <p>USDC: 20%</p>
+              <p>SOL: 80%</p>
+            </div>
+
             <pre className="mt-4 text-zinc-300">
-              {result || "Recommendations will appear here."}
+              {result || "Parsed policy appears here."}
             </pre>
+
+            <div className="mt-4 rounded bg-green-950 p-4 text-green-300">
+              {recommendation || "Agent recommendation appears here."}
+            </div>
           </div>
         </div>
       </div>
