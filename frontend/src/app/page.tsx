@@ -2,16 +2,24 @@
 
 import { useState } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 
 export default function Home() {
   const { publicKey, connected } = useWallet();
+  const { connection } = useConnection();
 
   const [policy, setPolicy] = useState("");
   const [result, setResult] = useState("");
   const [recommendation, setRecommendation] = useState("");
+  const [solBalance, setSolBalance] = useState<number | null>(null);
 
-  const parsePolicy = () => {
+  const analyzePolicy = async () => {
+    if (connected && publicKey) {
+      const balance = await connection.getBalance(publicKey);
+      const sol = balance / 1_000_000_000;
+      setSolBalance(sol);
+    }
+
     const text = policy.toLowerCase();
 
     const solMatch = text.match(/(\d+)\s*%\s*sol/);
@@ -27,7 +35,6 @@ export default function Home() {
 
     setResult(JSON.stringify(parsed, null, 2));
 
-    // Mock portfolio for MVP
     const currentSol = 80;
     const currentUsdc = 20;
 
@@ -68,6 +75,12 @@ export default function Home() {
             <p className="mt-2 break-all text-sm text-zinc-300">
               {publicKey?.toBase58()}
             </p>
+
+            {solBalance !== null && (
+              <p className="mt-2 text-yellow-300">
+                SOL Balance: {solBalance.toFixed(4)}
+              </p>
+            )}
           </div>
         )}
 
@@ -85,7 +98,7 @@ export default function Home() {
             />
 
             <button
-              onClick={parsePolicy}
+              onClick={analyzePolicy}
               className="mt-4 rounded-lg bg-purple-600 px-4 py-2"
             >
               Analyze Policy
@@ -99,11 +112,10 @@ export default function Home() {
 
             <div className="mt-4 rounded bg-zinc-900 p-4">
               <p className="font-semibold text-blue-400">
-                Current Portfolio
+                Portfolio Engine
               </p>
 
-              <p>USDC: 20%</p>
-              <p>SOL: 80%</p>
+              <p>Policy analysis complete</p>
             </div>
 
             <pre className="mt-4 text-zinc-300">
