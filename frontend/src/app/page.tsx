@@ -15,6 +15,7 @@ export default function Home() {
   const [compliance, setCompliance] = useState<number | null>(null);
   const [risk, setRisk] = useState("");
   const [confidence, setConfidence] = useState<number | null>(null);
+  const [reasoning, setReasoning] = useState("");
 
   const analyzePolicy = async () => {
     if (connected && publicKey) {
@@ -71,6 +72,27 @@ export default function Home() {
     }
 
     setRecommendation(rec);
+
+    setReasoning(
+      `Current portfolio allocation differs from your target policy.
+
+Current Allocation:
+SOL 80%
+USDC 20%
+
+Target Allocation:
+SOL ${targetSol}%
+USDC ${targetUsdc}%
+
+Recommended Action:
+${rec}
+
+Expected Outcome:
+Portfolio compliance improves and concentration risk decreases.
+
+Agent Assessment:
+The portfolio is currently operating outside your requested allocation policy and should be rebalanced to restore compliance.`
+    );
   };
 
   return (
@@ -147,6 +169,18 @@ export default function Home() {
             <div className="mt-4 rounded bg-green-950 p-4 text-green-300">
               {recommendation || "Agent recommendation appears here."}
             </div>
+
+            {reasoning && (
+              <div className="mt-4 rounded bg-zinc-900 p-4">
+                <h3 className="mb-2 font-semibold text-purple-400">
+                  Agent Reasoning
+                </h3>
+
+                <p className="whitespace-pre-line text-zinc-300">
+                  {reasoning}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
