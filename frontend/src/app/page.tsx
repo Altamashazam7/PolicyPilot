@@ -12,6 +12,9 @@ export default function Home() {
   const [result, setResult] = useState("");
   const [recommendation, setRecommendation] = useState("");
   const [solBalance, setSolBalance] = useState<number | null>(null);
+  const [compliance, setCompliance] = useState<number | null>(null);
+  const [risk, setRisk] = useState("");
+  const [confidence, setConfidence] = useState<number | null>(null);
 
   const analyzePolicy = async () => {
     if (connected && publicKey) {
@@ -38,12 +41,31 @@ export default function Home() {
     const currentSol = 80;
     const currentUsdc = 20;
 
+    const deviation =
+      Math.abs(currentSol - targetSol) +
+      Math.abs(currentUsdc - targetUsdc);
+
+    const complianceScore = Math.max(0, 100 - deviation);
+
+    setCompliance(complianceScore);
+
+    if (complianceScore >= 80) {
+      setRisk("Low");
+      setConfidence(95);
+    } else if (complianceScore >= 60) {
+      setRisk("Medium");
+      setConfidence(88);
+    } else {
+      setRisk("High");
+      setConfidence(76);
+    }
+
     let rec = "";
 
     if (currentSol > targetSol) {
-      rec = `Swap ${currentSol - targetSol}% SOL into USDC`;
+      rec = `Reduce SOL exposure by ${currentSol - targetSol}%`;
     } else if (currentUsdc > targetUsdc) {
-      rec = `Swap ${currentUsdc - targetUsdc}% USDC into SOL`;
+      rec = `Reduce USDC exposure by ${currentUsdc - targetUsdc}%`;
     } else {
       rec = "Portfolio already matches policy.";
     }
@@ -94,7 +116,7 @@ export default function Home() {
               value={policy}
               onChange={(e) => setPolicy(e.target.value)}
               className="mt-4 h-40 w-full rounded-lg bg-zinc-900 p-3"
-              placeholder="Example: Keep 40% USDC and 60% SOL"
+              placeholder="Keep 40% USDC and 60% SOL"
             />
 
             <button
@@ -110,17 +132,17 @@ export default function Home() {
               Agent Recommendation
             </h2>
 
-            <div className="mt-4 rounded bg-zinc-900 p-4">
-              <p className="font-semibold text-blue-400">
-                Portfolio Engine
-              </p>
-
-              <p>Policy analysis complete</p>
-            </div>
-
             <pre className="mt-4 text-zinc-300">
               {result || "Parsed policy appears here."}
             </pre>
+
+            {compliance !== null && (
+              <div className="mt-4 rounded bg-blue-950 p-4">
+                <p>Compliance Score: {compliance}%</p>
+                <p>Risk Level: {risk}</p>
+                <p>Agent Confidence: {confidence}%</p>
+              </div>
+            )}
 
             <div className="mt-4 rounded bg-green-950 p-4 text-green-300">
               {recommendation || "Agent recommendation appears here."}
