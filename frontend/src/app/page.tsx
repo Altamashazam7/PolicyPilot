@@ -17,6 +17,11 @@ export default function Home() {
   const [confidence, setConfidence] = useState<number | null>(null);
   const [reasoning, setReasoning] = useState("");
 
+  const [sellAmount, setSellAmount] = useState("");
+  const [receiveAmount, setReceiveAmount] = useState("");
+  const [priceImpact, setPriceImpact] = useState("");
+  const [route, setRoute] = useState("");
+
   const analyzePolicy = async () => {
     if (connected && publicKey) {
       const balance = await connection.getBalance(publicKey);
@@ -93,6 +98,11 @@ Portfolio compliance improves and concentration risk decreases.
 Agent Assessment:
 The portfolio is currently operating outside your requested allocation policy and should be rebalanced to restore compliance.`
     );
+
+    setSellAmount("0.25 SOL");
+    setReceiveAmount("42.50 USDC");
+    setPriceImpact("0.08%");
+    setRoute("Jupiter");
   };
 
   return (
@@ -103,7 +113,7 @@ The portfolio is currently operating outside your requested allocation policy an
         </h1>
 
         <p className="mt-4 text-zinc-400">
-          Autonomous DeFi Portfolio Management Through Policies
+          Your Autonomous DeFi Risk Manager
         </p>
 
         <div className="mt-6">
@@ -178,6 +188,34 @@ The portfolio is currently operating outside your requested allocation policy an
 
                 <p className="whitespace-pre-line text-zinc-300">
                   {reasoning}
+                </p>
+              </div>
+            )}
+
+            {sellAmount && (
+              <div className="mt-4 rounded border border-yellow-700 bg-yellow-950 p-4">
+                <h3 className="font-semibold text-yellow-300">
+                  Trade Preview
+                </h3>
+
+                <p className="mt-2">
+                  Sell: {sellAmount}
+                </p>
+
+                <p>
+                  Receive: {receiveAmount}
+                </p>
+
+                <p>
+                  Route: {route}
+                </p>
+
+                <p>
+                  Price Impact: {priceImpact}
+                </p>
+
+                <p>
+                  Network: Solana
                 </p>
               </div>
             )}
