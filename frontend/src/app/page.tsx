@@ -22,6 +22,8 @@ export default function Home() {
   const [priceImpact, setPriceImpact] = useState("");
   const [route, setRoute] = useState("");
 
+  const [loadingQuote, setLoadingQuote] = useState(false);
+
   const analyzePolicy = async () => {
     if (connected && publicKey) {
       const balance = await connection.getBalance(publicKey);
@@ -99,10 +101,54 @@ Agent Assessment:
 The portfolio is currently operating outside your requested allocation policy and should be rebalanced to restore compliance.`
     );
 
-    setSellAmount("0.25 SOL");
-    setReceiveAmount("42.50 USDC");
-    setPriceImpact("0.08%");
-    setRoute("Jupiter");
+    try {
+      setLoadingQuote(true);
+
+      const amountLamports = 250000000; // 0.25 SOL
+
+      const response = await fetch(
+        `https://lite-api.jup.ag/swap/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=${amountLamports}&slippageBps=50`
+      );
+
+      const quote = await response.json();
+
+      const outAmount =
+        Number(quote.outAmount || 0) / 1_000_000;
+
+      setSellAmount("0.25 SOL");
+      setReceiveAmount(`${outAmount.toFixed(2)} USDC`);
+
+      if (quote.priceImpactPct !== undefined) {
+        setPriceImpact(
+          `${(
+            Number(quote.priceImpactPct) * 100
+          ).toFixed(2)}%`
+        );
+      } else {
+        setPriceImpact("Unknown");
+      }
+
+      if (
+        quote.routePlan &&
+        quote.routePlan.length > 0 &&
+        quote.routePlan[0].swapInfo
+      ) {
+        setRoute(
+          quote.routePlan[0].swapInfo.label || "Jupiter"
+        );
+      } else {
+        setRoute("Jupiter");
+      }
+    } catch (error) {
+      console.error(error);
+
+      setSellAmount("0.25 SOL");
+      setReceiveAmount("Quote unavailable");
+      setPriceImpact("Unavailable");
+      setRoute("Unavailable");
+    } finally {
+      setLoadingQuote(false);
+    }
   };
 
   return (
@@ -195,7 +241,7 @@ The portfolio is currently operating outside your requested allocation policy an
             {sellAmount && (
               <div className="mt-4 rounded border border-yellow-700 bg-yellow-950 p-4">
                 <h3 className="font-semibold text-yellow-300">
-                  Trade Preview
+                  Live Jupiter Quote
                 </h3>
 
                 <p className="mt-2">
@@ -217,6 +263,12 @@ The portfolio is currently operating outside your requested allocation policy an
                 <p>
                   Network: Solana
                 </p>
+
+                {loadingQuote && (
+                  <p className="mt-2 text-blue-300">
+                    Fetching live quote...
+                  </p>
+                )}
               </div>
             )}
           </div>
